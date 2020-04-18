@@ -5,7 +5,7 @@ const validateOptions = require('schema-utils');
 const { sealedMerge } = require("./sealedMerge");
 
 const loaderName = 'app-settings-loader';
-const schema = { env: 'string' };
+const schema = { env: 'string', override: 'object' };
 const defaultOptions = { env: "development" };
 
 const parseFileContent = (content, filePath) => {
@@ -28,6 +28,8 @@ module.exports = function(source) {
         envConfig = parseFileContent(fs.readFileSync(envFile), envFile);
     }
     const sourceConfig = parseFileContent(source, this.resourcePath);
-
-    return JSON.stringify(sealedMerge(sourceConfig, envConfig));
+    const mergedFileConfig = sealedMerge(sourceConfig, envConfig);
+    const mergedOverrideConfig = sealedMerge(mergedFileConfig, options.override || {});
+    
+    return JSON.stringify(mergedOverrideConfig);
 };
